@@ -22,6 +22,11 @@ Outperform the provided hybrid baseline accuracy (~0.2983) on the ENZYMES datase
 - Training / evaluation pipeline (`training/train_eval.py`, `training/run_baseline.py`) 
 
 ## How to Run Baseline
-```bash
+``bash
 python starter_code/baseline_hybrid.py
+## Submissions / Leaderboard
+Currently, no automated scoring workflow is included. Participants can run the baseline, tune allowed components, and compare results locally. An automated leaderboard may be added later.
+
+### Optional Manual Submission
+Participants can create a CSV with their predictions (matching `test.csv` IDs) and share it with the organizer for local scoring comparison.
 
