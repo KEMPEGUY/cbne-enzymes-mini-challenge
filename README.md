@@ -15,6 +15,7 @@ Outperform the provided hybrid baseline accuracy (~0.2983) on the ENZYMES datase
 - Modifying CBNE feature generation code 
 - Using external data 
 - Changing train/test CSV splits 
+- Changing the core GNN architecture (e.g., number of layers, type of convolution)
 
 ### Provided
 - Frozen CBNE moment features (`data/train.csv`, `data/test.csv`) 
