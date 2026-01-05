@@ -1,33 +1,27 @@
-# CBNE–ENZYMES Mini Challenge
-
-## Problem
-Graph classification on the **ENZYMES** dataset (6 classes).
-
-Each graph is represented by:
-- a graph structure (GCN)
-- precomputed **CBNE moment-based topological features**
+# CBNE-ENZYMES Mini-Challenge
 
 ## Goal
-**Outperform the provided hybrid baseline accuracy (~0.2983).**
+Outperform the provided hybrid baseline accuracy (~0.2983) on the ENZYMES dataset.
 
 ## Rules
+
 ### Allowed
-- Modify the GNN architecture
-- Change fusion strategy
-- Tune hyperparameters
-- Add regularization / normalization
+- Tune hyperparameters (learning rate, batch size, number of epochs) 
+- Add or modify regularization / normalization (dropout, weight decay, etc.) 
+- Tune hyperparameters of the CBNE moment features (e.g., number of moments, max power, filtration parameters) 
+- Optionally modify the *fusion strategy* (how GCN features and CBNE moment features are combined)
 
 ### Forbidden
-- Modifying CBNE feature generation
-- Using external data
-- Changing train/test CSV splits
+- Modifying CBNE feature generation code 
+- Using external data 
+- Changing train/test CSV splits 
 
-## Provided
-- Frozen CBNE moment features
-- Baseline Hybrid GCN + Moments model
-- Training / evaluation pipeline
+### Provided
+- Frozen CBNE moment features (`data/train.csv`, `data/test.csv`) 
+- Baseline Hybrid GCN + Moments model (`starter_code/baseline_hybrid.py`) 
+- Training / evaluation pipeline (`training/train_eval.py`, `training/run_baseline.py`) 
 
 ## How to Run Baseline
 ```bash
-python training/run_baseline.py
+python starter_code/baseline_hybrid.py
 
