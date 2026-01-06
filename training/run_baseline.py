@@ -1,35 +1,80 @@
 # training/run_baseline.py
 import torch
 import numpy as np
-from torch_geometric.datasets import TUDataset
-from torch_geometric.loader import DataLoader
-from sklearn.model_selection import train_test_split
+from torch_geometric.data import Data, DataLoader
+
 from models.hybrid_baseline import HybridClassifier
 from training.train_eval import train, evaluate
 
+# ---------------------------
+# Device
+# ---------------------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Using device:", device)
 
-# Load CSV features
-X = np.loadtxt("data/train.csv", delimiter=",", skiprows=1)[:, :-1]
-Y = np.loadtxt("data/train.csv", delimiter=",", skiprows=1)[:, -1].astype(int)
+# ---------------------------
+# Helper: load CSV into PyG Data objects
+# ---------------------------
+def load_graph_dataset(csv_file="data/train.csv"):
+    """
+    Load graphs from CSV. Assumes:
+      - last column is label
+      - other columns are moment-based features
+    Each graph is represented as a single-node Data object (simplest placeholder).
+    """
+    X = np.loadtxt(csv_file, delimiter=",", skiprows=1)
+    features = X[:, :-1]
+    labels = X[:, -1].astype(int)
 
-dataset = TUDataset(root="./data", name="ENZYMES")
-for i, g in enumerate(dataset):
-    g.graph_id = i
+    graphs = []
+    for i in range(len(labels)):
+        x = torch.tensor(features[i:i+1], dtype=torch.float32)  # node feature
+        y = torch.tensor([labels[i]], dtype=torch.long)
+        graph = Data(x=x, y=y)
+        graph.graph_id = i  # optional, links to moment vector row
+        graphs.append(graph)
+    return graphs, features, labels
 
-moment_tensor = torch.tensor(X, dtype=torch.float32).to(device)
+# ---------------------------
+# Load TRAIN data
+# ---------------------------
+train_dataset, moment_features, labels = load_graph_dataset("data/train.csv")
 
-idx_train, idx_test = train_test_split(np.arange(len(dataset)), test_size=0.2, stratify=Y, random_state=42)
-train_loader = DataLoader([dataset[i] for i in idx_train], batch_size=32, shuffle=True)
-test_loader = DataLoader([dataset[i] for i in idx_test], batch_size=32)
+# Convert moment features to tensor
+moment_tensor = torch.tensor(moment_features, dtype=torch.float32).to(device)
 
-model = HybridClassifier(gcn_out_dim=64, moment_dim=X.shape[1], num_classes=6).to(device)
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=32,
+    shuffle=True
+)
+
+# ---------------------------
+# Model
+# ---------------------------
+num_classes = len(np.unique(labels))
+moment_dim = moment_features.shape[1]
+
+model = HybridClassifier(
+    gcn_out_dim=64,
+    moment_dim=moment_dim,
+    num_classes=num_classes
+).to(device)
+
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
 
-for epoch in range(20):
-    train(model, train_loader, optimizer, criterion, moment_tensor, device)
+# ---------------------------
+# Training
+# ---------------------------
+epochs = 20
+for epoch in range(epochs):
+    loss = train(model, train_loader, optimizer, criterion, moment_tensor, device)
+    print(f"Epoch [{epoch+1}/{epochs}] - Loss: {loss:.4f}")
 
-acc, report = evaluate(model, test_loader, moment_tensor, device)
-print(f"Baseline Accuracy: {acc:.4f}")
+# ---------------------------
+# Train accuracy sanity check
+# ---------------------------
+acc, report = evaluate(model, train_loader, moment_tensor, device)
+print(f"Train Accuracy (sanity check): {acc:.4f}")
 
